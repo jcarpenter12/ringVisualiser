@@ -9,7 +9,7 @@ var audioContext = createAudioContext();
 
 // var sources = ['src/assets/OECUS - N.AKIN.mp3',
                // 'src/assets/Mike Gao - Adventura 320kbps.mp3'];
-var sources = ['src/assets/xmasEve.mp3','src/assets/minipops.mp3'];
+var sources = ['src/assets/alberto.mp3'];
 
 var player = audioPlayer(sources, {
   context: audioContext,

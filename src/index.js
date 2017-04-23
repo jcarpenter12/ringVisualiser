@@ -12,7 +12,6 @@ import WAGNER from '@superguigui/wagner';
 import BloomPass from '@superguigui/wagner/src/passes/bloom/MultiPassBloomPass';
 import FXAAPass from '@superguigui/wagner/src/passes/fxaa/FXAAPass';
 import resize from 'brindille-resize';
-import Sphere from './objects/Sphere';
 import Circle from './objects/Circle';
 import OrbitControls from './controls/OrbitControls';
 import {
@@ -86,7 +85,7 @@ const origCameraRot = camera.rotation.clone();
 /* Actual content of the scene */
 
 //Add circles
-var circles = [];
+const circles = [];
 for (var i = 0; i <= 100; i++) {
     var circle = new Circle();
     circle.scale.x += i;
@@ -96,6 +95,7 @@ for (var i = 0; i <= 100; i++) {
     circle.children[0].material.transparent = true;
     scene.add(circle);
     circles.push(circle);
+    circles[i].children[0].geometry.verticesNeedUpdate = true;
 }
 
 var cScaleX = circle.scale.x;
@@ -142,9 +142,10 @@ function onResize() {
 var time = 0;
 var rotation = 0.01;
 
+
 function render(dt) {
     controls.update();
-
+   
     //camera rotation
 
     var x = camera.position.x,
@@ -173,19 +174,22 @@ function render(dt) {
     var lowCol = map_range(lowAvg, 0.5, 1, 0, 80);
     var midCol = map_range(midAvg, 0.5, 1, 0, 80);
     var highCol = map_range(highAvg, 0.5, 1, 0, 80);
-    var offset = (amp/1000);
+    var offset = (amp/100);
 
+   
     for (var i = 0; i < circles.length; i++) {
         if (circles[i].scale.x > circles.length) {
             circles[i].scale.x = 1 + i;
             circles[i].scale.y = 1 + i;
             circles[i].scale.z = 1 + i;
             circles[i].children[0].material.opacity = 0.3;
-            circles[i].children[0].geometry.vertices = circles[i].origVert;
-            circles[i].children[0].geometry.verticesNeedUpdate = true;
-        }
-        if(SETTINGS.vertMess){
+
+            if(SETTINGS.vertMess){
+
             for(var j = 0; j < circles[i].children[0].geometry.vertices.length; j++){
+                
+               
+                const origVert = circles[i].origVert[j];
                 var vert = circles[i].children[0].geometry.vertices[j];
                 if (Math.floor(Math.random() * 2) === 0) {
                     vert.x += offset;
@@ -196,11 +200,22 @@ function render(dt) {
                     vert.x -= offset;
                     vert.y -= offset;
                     vert.z -= offset;
-                }
-                circles[i].children[0].geometry.verticesNeedUpdate = true;
-                circles[i].children[0].geometry.vertices = circles[i].origVert;
+                }            
+                
             }
+        }else {
+            var vert =circles[i].children[0].geometry.vertices; 
+            for(var j = 0; j < vert.length; j++){
+                var oVert = circles[i].origVert;
+                vert.x  = oVert.x1;
+                vert.y  = oVert.y1;
+                vert.z  = oVert.z1;
+            }
+        }           
+            circles[i].children[0].geometry.verticesNeedUpdate = true;
         }
+
+        
               
         circles[i].scale.x += 0.1 + amp / 10;
         circles[i].scale.y += 0.1 + amp / 10;
@@ -257,8 +272,18 @@ function render(dt) {
     }
     if (SETTINGS.freqRotate){
         if (amp > 0.6){
-            camera.position.x = camera.position.x += amp/10;
-            //camera.position.z = camera.position.y += amp/10;     
+            console.log(camera.position.z);
+            //console.log(amp/50);
+            if (Math.floor(Math.random() * 2) === 0) { 
+                camera.position.x = camera.position.x += amp/50;
+                camera.position.z = camera.position.y += amp/50;
+                camera.position.z = camera.position.z += amp;
+            }
+            else {
+                camera.position.x = camera.position.x -= amp/50;
+                camera.position.z = camera.position.y -= amp/50;
+                camera.position.z = camera.position.z -= amp;
+            }     
         }
     }
     // if (time % 600 === 0){

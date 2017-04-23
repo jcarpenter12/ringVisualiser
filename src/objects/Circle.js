@@ -12,13 +12,13 @@ export default class Circle extends Object3D {
     constructor() {
         super();
         this.origVert = [];
+        const vertArr = [];
         var segmentCount = 100,
             radius = 0.5,
             geometry = new Geometry(),
             material = new LineBasicMaterial({
                 color: 0xffffff
             });
-
 
         for (var i = 0; i <= segmentCount; i++) {
             var theta = (i / segmentCount) * Math.PI * 2;
@@ -27,18 +27,21 @@ export default class Circle extends Object3D {
                     Math.sin(theta) * radius,
                     0);
             geometry.vertices.push(vert);
-
+            //this is used to remove only the numeric values of the Vector and not the object
+            var obj = {x1: vert.x,y2:vert.y,z3:vert.z};
+            vertArr.push(obj);
+            
         }
+
         var mesh = new Line(geometry, material);
-        this.origVert = geometry.vertices;
+
+        //create json object of vertices for deep clone of array
+        var jsonVert = JSON.stringify(vertArr);
+        this.origVert = JSON.parse(jsonVert);
 
         this.add(mesh);
-
-
     }
-    updateColor() {
-        //console.log(this.material);
-
+    get updateColor() {
+       return this;
     }
-
 }
