@@ -5,11 +5,22 @@ import createAudioContext from 'ios-safe-audio-context';
 
 
 var loading = document.querySelector('.loading');
+
 var audioContext = createAudioContext();
+var sources = [];
+
+//user upload file
+var userFileCheck = () => {
+  var userFile = document.getElementById('myFile');
+  sources.push(userFile);
+}
+  
+
+
 
 // var sources = ['src/assets/OECUS - N.AKIN.mp3',
                // 'src/assets/Mike Gao - Adventura 320kbps.mp3'];
-var sources = ['src/assets/alberto.mp3'];
+
 
 var player = audioPlayer(sources, {
   context: audioContext,
