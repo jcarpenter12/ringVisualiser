@@ -1,7 +1,7 @@
 import {
-  Vector3,
-  Vector2,
-  Quaternion
+    Vector3,
+    Vector2,
+    Quaternion
 } from 'three';
 import eventOffset from 'mouse-event-offset';
 import mouseWheel from 'mouse-wheel';
@@ -11,208 +11,207 @@ const Y_UP = new Vector3(0, 1, 0);
 const EPSILON = 1e-10;
 
 export default class OrbitControls {
-  constructor(object, opt = {}) {
-    this.onInputDown = this.onInputDown.bind(this);
-    this.onInputMove = this.onInputMove.bind(this);
-    this.onInputUp = this.onInputUp.bind(this);
-    this.handleZoom = this.handleZoom.bind(this);
-    this.preventDefault = this.preventDefault.bind(this);
-    this.update = this.update.bind(this);
+    constructor(object, opt = {}) {
+        this.onInputDown = this.onInputDown.bind(this);
+        this.onInputMove = this.onInputMove.bind(this);
+        this.onInputUp = this.onInputUp.bind(this);
+        this.handleZoom = this.handleZoom.bind(this);
+        this.preventDefault = this.preventDefault.bind(this);
+        this.update = this.update.bind(this);
 
-    this.object = object;
+        this.object = object;
 
-    this.inputDelta = new Vector3();
-    this.offset = new Vector3();
-    this.upQuat = new Quaternion();
-    this.upQuatInverse = new Quaternion();
-    this.enabled = true;
+        this.inputDelta = new Vector3();
+        this.offset = new Vector3();
+        this.upQuat = new Quaternion();
+        this.upQuatInverse = new Quaternion();
+        this.enabled = true;
 
-    this.target = opt.target || new Vector3();
-    this.distance = opt.distance || 1;
-    this.damping = opt.damping || 0.25;
-    this.rotateSpeed = opt.rotateSpeed || 0.28;
-    this.zoomSpeed = opt.zoomSpeed || 0.0075;
+        this.target = opt.target || new Vector3();
+        this.distance = opt.distance || 1;
+        this.damping = opt.damping || 0.25;
+        this.rotateSpeed = opt.rotateSpeed || 0.28;
+        this.zoomSpeed = opt.zoomSpeed || 0.0075;
 
-    this.rotate = opt.rotate !== false;
-    this.zoom = opt.zoom !== false;
+        this.rotate = opt.rotate !== false;
+        this.zoom = opt.zoom !== false;
 
-    this._theta = opt.theta || 0;
-    this._phi = opt.phi || Math.PI * 0.5;
+        this._theta = opt.theta || 0;
+        this._phi = opt.phi || Math.PI * 0.5;
 
-    this.phiBounds = opt.phiBounds || [0, Math.PI];
-    this.thetaBounds = opt.thetaBounds || [-Infinity, Infinity];
-    this.distanceBounds = opt.distanceBounds || [1, Infinity];
+        this.phiBounds = opt.phiBounds || [0, Math.PI];
+        this.thetaBounds = opt.thetaBounds || [-Infinity, Infinity];
+        this.distanceBounds = opt.distanceBounds || [1, Infinity];
 
-    this.parent = opt.parent || window;
-    this.element = opt.element;
-    this.pinchHandler;
-    this.mouseStart = new Vector2();
-    this.clientSize = new Vector2();
-    this.tmp = [0, 0];
-    this.dragging = false;
+        this.parent = opt.parent || window;
+        this.element = opt.element;
+        this.pinchHandler;
+        this.mouseStart = new Vector2();
+        this.clientSize = new Vector2();
+        this.tmp = [0, 0];
+        this.dragging = false;
 
-    this.addEvents();
-    this.rotateTo(this._theta, this._phi);
-  }
-
-  dispose() {
-    this.removeEvents();
-  }
-
-  reset() {
-    this.inputDelta = new Vector3();
-    this.mouseStart = new Vector2();
-    this.theta = 0;
-    this.phi = Math.PI * 0.5;
-  }
-
-  addEvents() {
-    if (this.rotate) {
-      this.parent.addEventListener('mousedown', this.onInputDown);
-      this.parent.addEventListener('mousemove', this.onInputMove);
-      this.parent.addEventListener('mouseup', this.onInputUp);
+        this.addEvents();
+        this.rotateTo(this._theta, this._phi);
     }
 
-    if (this.zoom) {
-      mouseWheel(window, this.handleZoom, true);
+    dispose() {
+        this.removeEvents();
     }
-  }
 
-  removeEvents() {
-    this.parent.removeEventListener('mousedown', this.onInputDown);
-    this.parent.removeEventListener('mousemove', this.onInputMove);
-    this.parent.removeEventListener('mouseup', this.onInputUp);
-  }
-
-  preventDefault(e) {
-    e.preventDefault();
-  }
-
-  onInputDown(e) {
-    if (!this.enabled) return;
-    const start = eventOffset(e, this.element);
-    this.mouseStart.set(start[0], start[1]);
-    if (this.insideBounds(this.mouseStart)) {
-      this.dragging = true;
+    reset() {
+        this.inputDelta = new Vector3();
+        this.mouseStart = new Vector2();
+        this.theta = 0;
+        this.phi = Math.PI * 0.5;
     }
-  }
 
-  onInputUp() {
-    if (!this.enabled) return;
-    this.dragging = false;
-  }
+    addEvents() {
+        if (this.rotate) {
+            this.parent.addEventListener('mousedown', this.onInputDown);
+            this.parent.addEventListener('mousemove', this.onInputMove);
+            this.parent.addEventListener('mouseup', this.onInputUp);
+        }
 
-  onInputMove(e) {
-    if (!this.enabled) return;
-    const end = eventOffset(e, this.element);
-    if (!this.dragging) return;
-    const rect = this.getClientSize();
-    const dx = (end[0] - this.mouseStart.x) / rect.x;
-    const dy = (end[1] - this.mouseStart.y) / rect.y;
-    this.handleRotate(dx, dy);
-    this.mouseStart.set(end[0], end[1]);
-  }
-
-  insideBounds(pos) {
-    if (this.element === window || this.element === document || this.element === document.body) {
-      return true;
+        if (this.zoom) {
+            mouseWheel(window, this.handleZoom, true);
+        }
     }
-    else {
-      const rect = this.element.getBoundingClientRect();
-      return pos.x >= 0 && pos.y >= 0 && pos.x < rect.width && pos.y < rect.height;
+
+    removeEvents() {
+        this.parent.removeEventListener('mousedown', this.onInputDown);
+        this.parent.removeEventListener('mousemove', this.onInputMove);
+        this.parent.removeEventListener('mouseup', this.onInputUp);
     }
-  }
 
-  getClientSize() {
-    var source = this.element;
-    if (source === window || source === document || source === document.body) {
-      source = document.documentElement;
+    preventDefault(e) {
+        e.preventDefault();
     }
-    return this.clientSize.set(source.clientWidth, source.clientHeight);
-  }
 
-  handleRotate(dx, dy) {
-    const PI2 = Math.PI * 2;
-    this.inputDelta.x -= PI2 * dx * this.rotateSpeed;
-    this.inputDelta.y -= PI2 * dy * this.rotateSpeed;
-  }
+    onInputDown(e) {
+        if (!this.enabled) return;
+        const start = eventOffset(e, this.element);
+        this.mouseStart.set(start[0], start[1]);
+        if (this.insideBounds(this.mouseStart)) {
+            this.dragging = true;
+        }
+    }
 
-  handleZoom(dx, dy) {
-    this.inputDelta.z += dy * this.zoomSpeed;
-  }
+    onInputUp() {
+        if (!this.enabled) return;
+        this.dragging = false;
+    }
 
-  rotateTo(theta, phi) {
-    this._prepareOffset();
+    onInputMove(e) {
+        if (!this.enabled) return;
+        const end = eventOffset(e, this.element);
+        if (!this.dragging) return;
+        const rect = this.getClientSize();
+        const dx = (end[0] - this.mouseStart.x) / rect.x;
+        const dy = (end[1] - this.mouseStart.y) / rect.y;
+        this.handleRotate(dx, dy);
+        this.mouseStart.set(end[0], end[1]);
+    }
 
-    this.theta = theta;
-    this.phi = phi;
+    insideBounds(pos) {
+        if (this.element === window || this.element === document || this.element === document.body) {
+            return true;
+        } else {
+            const rect = this.element.getBoundingClientRect();
+            return pos.x >= 0 && pos.y >= 0 && pos.x < rect.width && pos.y < rect.height;
+        }
+    }
 
-    this._computeOffset();
-    this._applyTransformation();
-  }
+    getClientSize() {
+        var source = this.element;
+        if (source === window || source === document || source === document.body) {
+            source = document.documentElement;
+        }
+        return this.clientSize.set(source.clientWidth, source.clientHeight);
+    }
 
-  get theta() {
-    return this._theta;
-  }
+    handleRotate(dx, dy) {
+        const PI2 = Math.PI * 2;
+        this.inputDelta.x -= PI2 * dx * this.rotateSpeed;
+        this.inputDelta.y -= PI2 * dy * this.rotateSpeed;
+    }
 
-  set theta(value) {
-    this._theta = clamp(value, this.thetaBounds[0], this.thetaBounds[1]);
-  }
+    handleZoom(dx, dy) {
+        this.inputDelta.z += dy * this.zoomSpeed;
+    }
 
-  get phi() {
-    return this._phi;
-  }
+    rotateTo(theta, phi) {
+        this._prepareOffset();
 
-  set phi(value) {
-    this._phi = clamp(value, this.phiBounds[0], this.phiBounds[1]);
-    this._phi = clamp(this._phi, EPSILON, Math.PI - EPSILON);
-  }
+        this.theta = theta;
+        this.phi = phi;
 
-  _prepareOffset() {
-    this.upQuat.setFromUnitVectors(this.object.up, Y_UP);
-    this.upQuatInverse.copy(this.upQuat).inverse();
+        this._computeOffset();
+        this._applyTransformation();
+    }
 
-    this.offset.subVectors(this.object.position, this.target);
-    this.offset.applyQuaternion(this.upQuat);
-  }
+    get theta() {
+        return this._theta;
+    }
 
-  _computeOffset() {
-    const radius = Math.abs(this.distance) <= EPSILON ? EPSILON : this.distance;
-    this.offset.x = radius * Math.sin(this.phi) * Math.sin(this.theta);
-    this.offset.y = radius * Math.cos(this.phi);
-    this.offset.z = radius * Math.sin(this.phi) * Math.cos(this.theta);
-  }
+    set theta(value) {
+        this._theta = clamp(value, this.thetaBounds[0], this.thetaBounds[1]);
+    }
 
-  _applyTransformation() {
-    this.offset.applyQuaternion(this.upQuatInverse);
-    this.object.position.addVectors(this.target, this.offset);
-    this.object.lookAt(this.target);
-  }
+    get phi() {
+        return this._phi;
+    }
 
-  _applyDamping() {
-    const damp = typeof this.damping === 'number' ? this.damping : 1;
-    this.inputDelta.x *= 1 - damp;
-    this.inputDelta.y *= 1 - damp;
-    this.inputDelta.z *= 1 - damp;
-  }
+    set phi(value) {
+        this._phi = clamp(value, this.phiBounds[0], this.phiBounds[1]);
+        this._phi = clamp(this._phi, EPSILON, Math.PI - EPSILON);
+    }
 
-  update() {
-    this._prepareOffset();
+    _prepareOffset() {
+        this.upQuat.setFromUnitVectors(this.object.up, Y_UP);
+        this.upQuatInverse.copy(this.upQuat).inverse();
 
-    let theta = Math.atan2(this.offset.x, this.offset.z);
-    let phi = Math.atan2(Math.sqrt(this.offset.x * this.offset.x + this.offset.z * this.offset.z), this.offset.y);
+        this.offset.subVectors(this.object.position, this.target);
+        this.offset.applyQuaternion(this.upQuat);
+    }
 
-    theta += this.inputDelta.x;
-    phi += this.inputDelta.y;
+    _computeOffset() {
+        const radius = Math.abs(this.distance) <= EPSILON ? EPSILON : this.distance;
+        this.offset.x = radius * Math.sin(this.phi) * Math.sin(this.theta);
+        this.offset.y = radius * Math.cos(this.phi);
+        this.offset.z = radius * Math.sin(this.phi) * Math.cos(this.theta);
+    }
 
-    this.theta = theta;
-    this.phi = phi;
+    _applyTransformation() {
+        this.offset.applyQuaternion(this.upQuatInverse);
+        this.object.position.addVectors(this.target, this.offset);
+        this.object.lookAt(this.target);
+    }
 
-    this.distance += this.inputDelta.z;
-    this.distance = clamp(this.distance, this.distanceBounds[0], this.distanceBounds[1]);
+    _applyDamping() {
+        const damp = typeof this.damping === 'number' ? this.damping : 1;
+        this.inputDelta.x *= 1 - damp;
+        this.inputDelta.y *= 1 - damp;
+        this.inputDelta.z *= 1 - damp;
+    }
 
-    this._computeOffset();
-    this._applyTransformation();
-    this._applyDamping();
-  }
+    update() {
+        this._prepareOffset();
+
+        let theta = Math.atan2(this.offset.x, this.offset.z);
+        let phi = Math.atan2(Math.sqrt(this.offset.x * this.offset.x + this.offset.z * this.offset.z), this.offset.y);
+
+        theta += this.inputDelta.x;
+        phi += this.inputDelta.y;
+
+        this.theta = theta;
+        this.phi = phi;
+
+        this.distance += this.inputDelta.z;
+        this.distance = clamp(this.distance, this.distanceBounds[0], this.distanceBounds[1]);
+
+        this._computeOffset();
+        this._applyTransformation();
+        this._applyDamping();
+    }
 }

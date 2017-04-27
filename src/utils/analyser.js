@@ -1,10 +1,10 @@
 //import createPlayer from './audioplayer';
 import createAnalyser from 'web-audio-analyser';
 
-function makeAnalyser(player){
+function makeAnalyser(player) {
     /* create audio analyser */
     var audioUtil = createAnalyser(player.node, player.context, {
-      stereo: false
+        stereo: false
     });
 
     var analyser = audioUtil.analyser;
@@ -12,7 +12,7 @@ function makeAnalyser(player){
     // from: http://www.teachmeaudio.com/mixing/techniques/audio-spectrum
     var bands = {
         sub: {
-            from: 20, 
+            from: 20,
             to: 250
         },
 
@@ -38,14 +38,18 @@ function makeAnalyser(player){
     for (var i = 0; i < 12; i++) {
         var prev = i * 285;
         analyserBands[i] = {
-            'from'  : prev + 1,
-            'to'    : (i+1) * 285
+            'from': prev + 1,
+            'to': (i + 1) * 285
         }
     }
 
     var waveform = analyser.waveform;
 
-    var obj = {audioUtil:audioUtil,analyser:analyser,bands:bands};
+    var obj = {
+        audioUtil: audioUtil,
+        analyser: analyser,
+        bands: bands
+    };
 
     return obj;
 }

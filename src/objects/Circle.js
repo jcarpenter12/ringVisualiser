@@ -23,14 +23,18 @@ export default class Circle extends Object3D {
         for (var i = 0; i <= segmentCount; i++) {
             var theta = (i / segmentCount) * Math.PI * 2;
             var vert = new Vector3(
-                    Math.cos(theta) * radius,
-                    Math.sin(theta) * radius,
-                    0);
+                Math.cos(theta) * radius,
+                Math.sin(theta) * radius,
+                0);
             geometry.vertices.push(vert);
             //this is used to remove only the numeric values of the Vector and not the object
-            var obj = {x1: vert.x,y2:vert.y,z3:vert.z};
+            var obj = {
+                x1: vert.x,
+                y2: vert.y,
+                z3: vert.z
+            };
             vertArr.push(obj);
-            
+
         }
 
         var mesh = new Line(geometry, material);
@@ -42,6 +46,6 @@ export default class Circle extends Object3D {
         this.add(mesh);
     }
     get updateColor() {
-       return this;
+        return this;
     }
 }

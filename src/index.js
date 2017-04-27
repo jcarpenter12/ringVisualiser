@@ -31,11 +31,11 @@ import makeAnalyser from './utils/analyser';
 //fps 
 import Stats from 'stats.js';
 
-function run(audioUtilities){
+function run(audioUtilities) {
     /*set up audio variables*/
     var audioUtil = audioUtilities.audioUtil;
-    var analyser  = audioUtilities.analyser;
-    var bands     = audioUtilities.bands;
+    var analyser = audioUtilities.analyser;
+    var bands = audioUtilities.bands;
 
     /* Custom settings */
     const SETTINGS = {
@@ -155,19 +155,19 @@ function run(audioUtilities){
     var fps = stats.dom;
     document.body.appendChild(fps);
 
-   
+
     function render(dt) {
 
         //fps stuff
-        if (SETTINGS.displayFPS){
+        if (SETTINGS.displayFPS) {
             stats.begin();
             fps.style.display = 'block';
-        }else{
+        } else {
             fps.style.display = 'none';
-        }      
+        }
 
         controls.update();
-       
+
         //camera rotation
         var x = camera.position.x,
             y = camera.position.y,
@@ -195,9 +195,9 @@ function run(audioUtilities){
         var lowCol = map_range(lowAvg, 0.5, 1, 0, 80);
         var midCol = map_range(midAvg, 0.5, 1, 0, 80);
         var highCol = map_range(highAvg, 0.5, 1, 0, 80);
-        var offset = (amp/100);
+        var offset = (amp / 100);
 
-       
+
         for (var i = 0; i < circles.length; i++) {
             if (circles[i].scale.x > circles.length) {
                 circles[i].scale.x = 1 + i;
@@ -205,39 +205,38 @@ function run(audioUtilities){
                 circles[i].scale.z = 1 + i;
                 circles[i].children[0].material.opacity = 0.3;
 
-                if(SETTINGS.vertMess){
+                if (SETTINGS.vertMess) {
 
-                for(var j = 0; j < circles[i].children[0].geometry.vertices.length; j++){
-                    
-                   
-                    const origVert = circles[i].origVert[j];
-                    var vert = circles[i].children[0].geometry.vertices[j];
-                    if (Math.floor(Math.random() * 2) === 0) {
-                        vert.x += offset;
-                        vert.y += offset;
-                        vert.z += offset;
+                    for (var j = 0; j < circles[i].children[0].geometry.vertices.length; j++) {
+
+
+                        const origVert = circles[i].origVert[j];
+                        var vert = circles[i].children[0].geometry.vertices[j];
+                        if (Math.floor(Math.random() * 2) === 0) {
+                            vert.x += offset;
+                            vert.y += offset;
+                            vert.z += offset;
+                        } else {
+                            vert.x -= offset;
+                            vert.y -= offset;
+                            vert.z -= offset;
+                        }
+
                     }
-                    else{
-                        vert.x -= offset;
-                        vert.y -= offset;
-                        vert.z -= offset;
-                    }            
-                    
+                } else {
+                    var vert = circles[i].children[0].geometry.vertices;
+                    for (var j = 0; j < vert.length; j++) {
+                        var oVert = circles[i].origVert;
+                        vert.x = oVert.x1;
+                        vert.y = oVert.y1;
+                        vert.z = oVert.z1;
+                    }
                 }
-            }else {
-                var vert =circles[i].children[0].geometry.vertices; 
-                for(var j = 0; j < vert.length; j++){
-                    var oVert = circles[i].origVert;
-                    vert.x  = oVert.x1;
-                    vert.y  = oVert.y1;
-                    vert.z  = oVert.z1;
-                }
-            }           
                 circles[i].children[0].geometry.verticesNeedUpdate = true;
             }
 
-            
-                  
+
+
             circles[i].scale.x += 0.1 + amp / 10;
             circles[i].scale.y += 0.1 + amp / 10;
             circles[i].scale.z += 0.1 + amp / 10;
@@ -248,7 +247,7 @@ function run(audioUtilities){
                 circles[i].scale.x += amp;
                 circles[i].scale.y += amp;
                 circles[i].scale.z += amp;
-            } 
+            }
         }
 
         if (SETTINGS.useComposer) {
@@ -291,18 +290,17 @@ function run(audioUtilities){
                 }
             });
         }
-        if (SETTINGS.freqRotate){
-            if (amp > 0.6){
-                if (Math.floor(Math.random() * 2) === 0) { 
-                    camera.position.x = camera.position.x += amp/50;
-                    camera.position.z = camera.position.y += amp/50;
+        if (SETTINGS.freqRotate) {
+            if (amp > 0.6) {
+                if (Math.floor(Math.random() * 2) === 0) {
+                    camera.position.x = camera.position.x += amp / 50;
+                    camera.position.z = camera.position.y += amp / 50;
                     camera.position.z = camera.position.z += amp;
-                }
-                else {
-                    camera.position.x = camera.position.x -= amp/50;
-                    camera.position.z = camera.position.y -= amp/50;
+                } else {
+                    camera.position.x = camera.position.x -= amp / 50;
+                    camera.position.z = camera.position.y -= amp / 50;
                     camera.position.z = camera.position.z -= amp;
-                }     
+                }
             }
         }
         // if (time % 600 === 0){
@@ -312,7 +310,7 @@ function run(audioUtilities){
         //update time variable
         time++;
 
-        if(SETTINGS.displayFPS) stats.end();
+        if (SETTINGS.displayFPS) stats.end();
     }
 }
 
@@ -346,15 +344,15 @@ function handleDrop(e) {
     var fileReader = new FileReader();
     var analyser = null;
 
-    fileReader.onload = function (e) {
+    fileReader.onload = function(e) {
         var fileResult = e.target.result;
         console.log("load");
-        analyser = makeAnalyser(createPlayer(fileResult,'.loading'));
+        analyser = makeAnalyser(createPlayer(fileResult, '.loading'));
         return run(analyser);
     };
 
-    fileReader.onerror = function (e) {
-          console.log('error reading file');
+    fileReader.onerror = function(e) {
+        console.log('error reading file');
     };
 
     fileReader.readAsDataURL(file);
@@ -363,14 +361,14 @@ function handleDrop(e) {
     document.getElementById("dropZone").style.backgroundColor = "violet";
 }
 
-(function clickZone(){
+(function clickZone() {
     var clickZone = document.querySelector('.default');
-    clickZone.addEventListener('click',handleClick,false);
+    clickZone.addEventListener('click', handleClick, false);
 })();
 
 function handleClick(e) {
     var source = ['src/assets/alberto.mp3'];
-    var analyser = makeAnalyser(createPlayer(source,'.default'));
+    var analyser = makeAnalyser(createPlayer(source, '.default'));
     document.querySelector('.loading').style.display = 'none';
     return run(analyser);
 }
