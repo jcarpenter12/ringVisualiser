@@ -26,7 +26,10 @@ import createAudioContext from 'ios-safe-audio-context';
 
 //utilities
 import createPlayer from './utils/audioplayer';
-import makeAnalyser     from './utils/analyser';
+import makeAnalyser from './utils/analyser';
+
+//fps 
+import Stats from 'stats.js';
 
 function run(audioUtilities){
     /*set up audio variables*/
@@ -44,7 +47,8 @@ function run(audioUtilities){
         centre: false,
         colourFrequencies: false,
         freqRotate: false,
-        vertMess: false
+        vertMess: false,
+        displayFPS: false
     };
 
     /* Init renderer and canvas */
@@ -124,8 +128,7 @@ function run(audioUtilities){
     gui.add(SETTINGS, 'colourFrequencies');
     gui.add(SETTINGS, 'vertMess');
     gui.add(SETTINGS, 'freqRotate');
-
-
+    gui.add(SETTINGS, 'displayFPS');
 
     /* -------------------------------------------------------------------------------- */
 
@@ -145,14 +148,27 @@ function run(audioUtilities){
     // time variable
     var time = 0;
     var rotation = 0.01;
-    
 
+    //setup fps dom
+    var stats = new Stats();
+    stats.showPanel(0);
+    var fps = stats.dom;
+    document.body.appendChild(fps);
 
+   
     function render(dt) {
+
+        //fps stuff
+        if (SETTINGS.displayFPS){
+            stats.begin();
+            fps.style.display = 'block';
+        }else{
+            fps.style.display = 'none';
+        }      
+
         controls.update();
        
         //camera rotation
-
         var x = camera.position.x,
             y = camera.position.y,
             z = camera.position.z;
@@ -277,8 +293,6 @@ function run(audioUtilities){
         }
         if (SETTINGS.freqRotate){
             if (amp > 0.6){
-                console.log(camera.position.z);
-                //console.log(amp/50);
                 if (Math.floor(Math.random() * 2) === 0) { 
                     camera.position.x = camera.position.x += amp/50;
                     camera.position.z = camera.position.y += amp/50;
@@ -297,6 +311,8 @@ function run(audioUtilities){
         // }
         //update time variable
         time++;
+
+        if(SETTINGS.displayFPS) stats.end();
     }
 }
 
@@ -353,7 +369,6 @@ function handleDrop(e) {
 })();
 
 function handleClick(e) {
-    console.log("iambeingclicked");
     var source = ['src/assets/alberto.mp3'];
     var analyser = makeAnalyser(createPlayer(source,'.default'));
     document.querySelector('.loading').style.display = 'none';

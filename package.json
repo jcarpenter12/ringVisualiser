@@ -28,6 +28,7 @@
     "mouse-event-offset": "^3.0.2",
     "mouse-wheel": "^1.1.0",
     "raf-loop": "^1.1.3",
+    "stats.js": "^0.17.0",
     "three": "*",
     "web-audio-analyser": "^2.0.1",
     "web-audio-player": "^1.3.1"
