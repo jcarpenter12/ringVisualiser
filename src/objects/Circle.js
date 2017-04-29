@@ -5,8 +5,11 @@ import {
     Geometry,
     Line,
     Vector3,
+    Math as tMath,
     Mesh
 } from 'three';
+
+var mesh = null;
 
 export default class Circle extends Object3D {
     constructor() {
@@ -37,7 +40,7 @@ export default class Circle extends Object3D {
 
         }
 
-        var mesh = new Line(geometry, material);
+        mesh = new Line(geometry, material);
 
         //create json object of vertices for deep clone of array
         var jsonVert = JSON.stringify(vertArr);
@@ -45,7 +48,7 @@ export default class Circle extends Object3D {
 
         this.add(mesh);
     }
-    get updateColor() {
-        return this;
+
+    updateColor(lowAvg,midAvg,highAvg){
     }
 }

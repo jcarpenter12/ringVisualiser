@@ -3,6 +3,7 @@ import {
     Scene,
     PerspectiveCamera,
     PointLight,
+    Math as tMath,
     Mesh,
     Line,
     Color
@@ -45,9 +46,8 @@ function run(audioUtilities) {
         rotateAntiX: false,
         rotateAntiY: false,
         centre: false,
-        colourFrequencies: false,
         freqRotate: false,
-        vertMess: false,
+        freqVertices: false,
         displayFPS: false
     };
 
@@ -103,11 +103,7 @@ function run(audioUtilities) {
         circles[i].children[0].geometry.verticesNeedUpdate = true;
     }
 
-    var cScaleX = circle.scale.x;
-    var cScaleY = circle.scale.y;
-    var cScaleZ = circle.scale.z;
-
-
+    console.log(circles[0]);
     /* Various event listeners */
     resize.addListener(onResize);
 
@@ -125,11 +121,10 @@ function run(audioUtilities) {
     gui.add(SETTINGS, 'rotateAntiX');
     gui.add(SETTINGS, 'rotateAntiY');
     gui.add(SETTINGS, 'centre');
-    gui.add(SETTINGS, 'colourFrequencies');
-    gui.add(SETTINGS, 'vertMess');
+    gui.add(SETTINGS, 'freqVertices');
     gui.add(SETTINGS, 'freqRotate');
     gui.add(SETTINGS, 'displayFPS');
-
+    console.log(gui);
     /* -------------------------------------------------------------------------------- */
 
     /**
@@ -147,6 +142,11 @@ function run(audioUtilities) {
     //camera.lookAt(scene.position);
     // time variable
     var time = 0;
+
+    //tau for rotation
+    var t = 0;
+    var tprev = t;
+
     var rotation = 0.01;
 
     //setup fps dom
@@ -155,12 +155,7 @@ function run(audioUtilities) {
     var fps = stats.dom;
     document.body.appendChild(fps);
 
-
-    var xCheck = 0;
-    var yCheck = 0;
-
     function render(dt) {
-
         //fps stuff
         if (SETTINGS.displayFPS) {
             stats.begin();
@@ -192,17 +187,24 @@ function run(audioUtilities) {
         var highAvg = average(analyser, freqs, bands.high.from, bands.high.to);
 
         //amplitude
-        var amp = average(analyser, waveform, 225, 256);
+        var amp = average(analyser, waveform, 225, 256);         
 
-        var subCol = map_range(subAvg, 0.5, 1, 0, 80);
-        var lowCol = map_range(lowAvg, 0.5, 1, 0, 80);
-        var midCol = map_range(midAvg, 0.5, 1, 0, 80);
-        var highCol = map_range(highAvg, 0.5, 1, 0, 80);
-        var offset = (amp / 150);        
+        //rotation variables 
+        tprev = t * .75;
+        t = .0025 + lowAvg + tprev;  
+        var offset = map_range(lowAvg,0,1,0,0.005);   
 
         for (var i = 0; i < circles.length; i++) {
             if (circles[i].scale.x > circles.length + 3 ) {
-                if (SETTINGS.vertMess) {
+                //reset the vertices back to original defined at creation of obj
+                for (var j = 0; j < circles[i].children[0].geometry.vertices.length; j++) {
+                    var vert = circles[i].children[0].geometry.vertices;
+                    const origVert = circles[i].origVert[j];
+                    vert[j].x = origVert.x1;
+                    vert[j].y = origVert.y1;
+                    vert[j].z = origVert.z1;
+                }
+                if (SETTINGS.freqVertices) {
 
                     for (var j = 0; j < circles[i].children[0].geometry.vertices.length; j++) {
                         
@@ -217,37 +219,36 @@ function run(audioUtilities) {
                             vert.z -= offset;
                         }
                     }
-                } else {
-                    for (var j = 0; j < circles[i].children[0].geometry.vertices.length; j++) {
-                        var vert = circles[i].children[0].geometry.vertices;
-                        const origVert = circles[i].origVert[j];
-                        vert[j].x = origVert.x1;
-                        vert[j].y = origVert.y1;
-                        vert[j].z = origVert.z1;
-                    }
-                }
+                } 
                 circles[i].scale.x = 1 + i;
                 circles[i].scale.y = 1 + i;
                 circles[i].scale.z = 1 + i;
                 circles[i].children[0].material.opacity = 0.3;
 
-                
+                    
                 circles[i].children[0].geometry.verticesNeedUpdate = true;
             }
-
-
 
             circles[i].scale.x += 0.1 + amp / 10;
             circles[i].scale.y += 0.1 + amp / 10;
             circles[i].scale.z += 0.1 + amp / 10;
 
             circles[i].children[0].material.opacity -= 0.05;
-            if (amp > 0.6) {
+            if (amp > 0.7) {
                 circles[i].children[0].material.opacity = amp;
                 circles[i].scale.x += amp;
                 circles[i].scale.y += amp;
                 circles[i].scale.z += amp;
             }
+
+            if (SETTINGS.freqRotate) {
+              circles[i].rotation.x = Math.sin(Math.PI * .5 * ((time * i)/10000)) + t;
+              circles[i].rotation.y = Math.cos(Math.PI * .5 * ((time * i)/10000)) + t;
+            }else{
+                circles[i].rotation.x = 0;
+                circles[i].rotation.y   = 0;
+            }
+        
         }
 
         if (SETTINGS.useComposer) {
@@ -266,7 +267,6 @@ function run(audioUtilities) {
         if (SETTINGS.rotateY) {
             camera.position.y = y * Math.cos(rotation) + z * Math.sin(rotation);
             camera.position.z = z * Math.cos(rotation) - x * Math.sin(rotation);
-            camera.zoom = 1;
         }
         if (SETTINGS.rotateAntiX) {
             camera.position.x = x * Math.cos(rotation) - z * Math.sin(rotation);
@@ -275,38 +275,19 @@ function run(audioUtilities) {
         if (SETTINGS.rotateAntiY) {
             camera.position.y = y * Math.cos(rotation) - z * Math.sin(rotation);
             camera.position.z = z * Math.cos(rotation) + x * Math.sin(rotation);
-            camera.zoom = 1;
         }
+
         if (SETTINGS.centre) {
             camera.position.set(origCameraPos.x, origCameraPos.y, origCameraPos.z);
             camera.rotation.set(origCameraRot.x, origCameraRot.y, origCameraRot.z);
             SETTINGS.centre = false;
         }
-        if (SETTINGS.colourFrequencies) {
-            scene.traverse(function(e) {
-                //update circle colour
-                if (e instanceof Line) {
-                    e.material.color.setRGB(subCol, lowCol, midCol);
-                }
-            });
+        
+
+        if (time % 600 === 0){
+            camera.position.set(origCameraPos.x, origCameraPos.y, origCameraPos.z);
+            camera.rotation.set(origCameraRot.x, origCameraRot.y, origCameraRot.z);
         }
-        if (SETTINGS.freqRotate) {
-            if (amp > 0.6) {
-                if (Math.floor(Math.random() * 2) === 0) {
-                    camera.position.x = camera.position.x += amp / 50;
-                    camera.position.z = camera.position.y += amp / 50;
-                    camera.position.z = camera.position.z += amp;
-                } else {
-                    camera.position.x = camera.position.x -= amp / 50;
-                    camera.position.z = camera.position.y -= amp / 50;
-                    camera.position.z = camera.position.z -= amp;
-                }
-            }
-        }
-        // if (time % 600 === 0){
-        //     camera.position.set(origCameraPos.x, origCameraPos.y, origCameraPos.z);
-        //     camera.rotation.set(origCameraRot.x, origCameraRot.y, origCameraRot.z);
-        // }
         //update time variable
         time++;
 
