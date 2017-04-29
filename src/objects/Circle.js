@@ -30,8 +30,8 @@ export default class Circle extends Object3D {
             //this is used to remove only the numeric values of the Vector and not the object
             var obj = {
                 x1: vert.x,
-                y2: vert.y,
-                z3: vert.z
+                y1: vert.y,
+                z1: vert.z
             };
             vertArr.push(obj);
 

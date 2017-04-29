@@ -72,7 +72,7 @@ function run(audioUtilities) {
 
     const controls = new OrbitControls(camera, {
         element: renderer.domElement,
-        distance: 100,
+        distance: 220,
         phi: Math.PI * 0.5
     });
     const origCameraPos = camera.position.clone();
@@ -96,7 +96,7 @@ function run(audioUtilities) {
         circle.scale.x += i;
         circle.scale.y += i;
         circle.scale.z += i;
-        circle.position.z -= i;
+        circle.position.z += i;
         circle.children[0].material.transparent = true;
         scene.add(circle);
         circles.push(circle);
@@ -156,6 +156,9 @@ function run(audioUtilities) {
     document.body.appendChild(fps);
 
 
+    var xCheck = 0;
+    var yCheck = 0;
+
     function render(dt) {
 
         //fps stuff
@@ -195,22 +198,14 @@ function run(audioUtilities) {
         var lowCol = map_range(lowAvg, 0.5, 1, 0, 80);
         var midCol = map_range(midAvg, 0.5, 1, 0, 80);
         var highCol = map_range(highAvg, 0.5, 1, 0, 80);
-        var offset = (amp / 100);
-
+        var offset = (amp / 150);        
 
         for (var i = 0; i < circles.length; i++) {
-            if (circles[i].scale.x > circles.length) {
-                circles[i].scale.x = 1 + i;
-                circles[i].scale.y = 1 + i;
-                circles[i].scale.z = 1 + i;
-                circles[i].children[0].material.opacity = 0.3;
-
+            if (circles[i].scale.x > circles.length + 3 ) {
                 if (SETTINGS.vertMess) {
 
                     for (var j = 0; j < circles[i].children[0].geometry.vertices.length; j++) {
-
-
-                        const origVert = circles[i].origVert[j];
+                        
                         var vert = circles[i].children[0].geometry.vertices[j];
                         if (Math.floor(Math.random() * 2) === 0) {
                             vert.x += offset;
@@ -221,17 +216,22 @@ function run(audioUtilities) {
                             vert.y -= offset;
                             vert.z -= offset;
                         }
-
                     }
                 } else {
-                    var vert = circles[i].children[0].geometry.vertices;
-                    for (var j = 0; j < vert.length; j++) {
-                        var oVert = circles[i].origVert;
-                        vert.x = oVert.x1;
-                        vert.y = oVert.y1;
-                        vert.z = oVert.z1;
+                    for (var j = 0; j < circles[i].children[0].geometry.vertices.length; j++) {
+                        var vert = circles[i].children[0].geometry.vertices;
+                        const origVert = circles[i].origVert[j];
+                        vert[j].x = origVert.x1;
+                        vert[j].y = origVert.y1;
+                        vert[j].z = origVert.z1;
                     }
                 }
+                circles[i].scale.x = 1 + i;
+                circles[i].scale.y = 1 + i;
+                circles[i].scale.z = 1 + i;
+                circles[i].children[0].material.opacity = 0.3;
+
+                
                 circles[i].children[0].geometry.verticesNeedUpdate = true;
             }
 
