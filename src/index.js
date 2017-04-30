@@ -45,6 +45,7 @@ function run(audioUtilities) {
         rotateY: false,
         rotateAntiX: false,
         rotateAntiY: false,
+        createCone: false,
         centre: false,
         freqRotate: false,
         freqVertices: false,
@@ -77,15 +78,6 @@ function run(audioUtilities) {
     });
     const origCameraPos = camera.position.clone();
     const origCameraRot = camera.rotation.clone();
-    //const origControlCentre = controls.center.clone();
-
-    /* Lights */
-    // const frontLight = new PointLight(0xFFFFFF, 1);
-    // const backLight = new PointLight(0xFFFFFF, 0.5);
-    // scene.add(frontLight);
-    // scene.add(backLight);
-    // frontLight.position.x = 20;
-    // backLight.position.x = -20;
 
     /* Actual content of the scene */
 
@@ -96,7 +88,6 @@ function run(audioUtilities) {
         circle.scale.x += i;
         circle.scale.y += i;
         circle.scale.z += i;
-        circle.position.z += i;
         circle.children[0].material.transparent = true;
         scene.add(circle);
         circles.push(circle);
@@ -120,6 +111,7 @@ function run(audioUtilities) {
     gui.add(SETTINGS, 'rotateY');
     gui.add(SETTINGS, 'rotateAntiX');
     gui.add(SETTINGS, 'rotateAntiY');
+    gui.add(SETTINGS, 'createCone');
     gui.add(SETTINGS, 'centre');
     gui.add(SETTINGS, 'freqVertices');
     gui.add(SETTINGS, 'freqRotate');
@@ -187,15 +179,15 @@ function run(audioUtilities) {
         var highAvg = average(analyser, freqs, bands.high.from, bands.high.to);
 
         //amplitude
-        var amp = average(analyser, waveform, 225, 256);         
+        var amp = average(analyser, waveform, 225, 256);
 
         //rotation variables 
         tprev = t * .75;
-        t = .0025 + lowAvg + tprev;  
-        var offset = map_range(lowAvg,0,1,0,0.005);   
+        t = .0025 + lowAvg + tprev;
+        var offset = map_range(lowAvg, 0, 1, 0, 0.005);
 
         for (var i = 0; i < circles.length; i++) {
-            if (circles[i].scale.x > circles.length + 3 ) {
+            if (circles[i].scale.x > circles.length + 3) {
                 //reset the vertices back to original defined at creation of obj
                 for (var j = 0; j < circles[i].children[0].geometry.vertices.length; j++) {
                     var vert = circles[i].children[0].geometry.vertices;
@@ -207,7 +199,7 @@ function run(audioUtilities) {
                 if (SETTINGS.freqVertices) {
 
                     for (var j = 0; j < circles[i].children[0].geometry.vertices.length; j++) {
-                        
+
                         var vert = circles[i].children[0].geometry.vertices[j];
                         if (Math.floor(Math.random() * 2) === 0) {
                             vert.x += offset;
@@ -219,13 +211,16 @@ function run(audioUtilities) {
                             vert.z -= offset;
                         }
                     }
-                } 
+                }
+                
                 circles[i].scale.x = 1 + i;
                 circles[i].scale.y = 1 + i;
                 circles[i].scale.z = 1 + i;
+                if (SETTINGS.createCone)circles[i].position.z += i;
+                else circles[i].position.z = 0;
                 circles[i].children[0].material.opacity = 0.3;
 
-                    
+
                 circles[i].children[0].geometry.verticesNeedUpdate = true;
             }
 
@@ -242,13 +237,13 @@ function run(audioUtilities) {
             }
 
             if (SETTINGS.freqRotate) {
-              circles[i].rotation.x = Math.sin(Math.PI * .5 * ((time * i)/10000)) + t;
-              circles[i].rotation.y = Math.cos(Math.PI * .5 * ((time * i)/10000)) + t;
-            }else{
+                circles[i].rotation.x = Math.sin(Math.PI * .5 * ((time * i) / 10000)) + t;
+                circles[i].rotation.y = Math.cos(Math.PI * .5 * ((time * i) / 10000)) + t;
+            } else {
                 circles[i].rotation.x = 0;
-                circles[i].rotation.y   = 0;
+                circles[i].rotation.y = 0;
             }
-        
+
         }
 
         if (SETTINGS.useComposer) {
@@ -282,9 +277,9 @@ function run(audioUtilities) {
             camera.rotation.set(origCameraRot.x, origCameraRot.y, origCameraRot.z);
             SETTINGS.centre = false;
         }
-        
 
-        if (time % 600 === 0){
+
+        if (time % 1200 === 0) {
             camera.position.set(origCameraPos.x, origCameraPos.y, origCameraPos.z);
             camera.rotation.set(origCameraRot.x, origCameraRot.y, origCameraRot.z);
         }
@@ -351,5 +346,6 @@ function handleClick(e) {
     var source = ['src/assets/alberto.mp3'];
     var analyser = makeAnalyser(createPlayer(source, '.default'));
     document.querySelector('.loading').style.display = 'none';
+    document.querySelector('.parent').style.display = 'none';
     return run(analyser);
 }

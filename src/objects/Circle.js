@@ -49,6 +49,4 @@ export default class Circle extends Object3D {
         this.add(mesh);
     }
 
-    updateColor(lowAvg,midAvg,highAvg){
-    }
 }
