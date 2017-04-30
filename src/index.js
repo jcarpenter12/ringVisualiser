@@ -61,7 +61,7 @@ function run(audioUtilities) {
         blurAmount: 0,
         applyZoomBlur: false
     });
-    const boxBlurPass = new BoxBlurPass(2,2);
+    const boxBlurPass = new BoxBlurPass(2, 2);
     const fxaaPass = new FXAAPass();
 
     /* Main scene and camera */
@@ -85,10 +85,8 @@ function run(audioUtilities) {
         circle.scale.x += i;
         circle.scale.y += i;
         circle.scale.z += i;
-        circle.children[0].material.transparent = true;
         scene.add(circle);
         circles.push(circle);
-        circles[i].children[0].geometry.verticesNeedUpdate = true;
     }
 
     /* Various event listeners */
@@ -110,7 +108,7 @@ function run(audioUtilities) {
     gui.add(SETTINGS, 'rotateY');
     gui.add(SETTINGS, 'rotateAntiX');
     gui.add(SETTINGS, 'rotateAntiY');
-    gui.add(SETTINGS, 'centre');    
+    gui.add(SETTINGS, 'centre');
     gui.add(SETTINGS, 'displayFPS');
     /* -------------------------------------------------------------------------------- */
 
@@ -184,50 +182,28 @@ function run(audioUtilities) {
         for (var i = 0; i < circles.length; i++) {
             if (circles[i].scale.x > circles.length + 3) {
                 //reset the vertices back to original defined at creation of obj
-                for (var j = 0; j < circles[i].children[0].geometry.vertices.length; j++) {
-                    var vert = circles[i].children[0].geometry.vertices;
-                    const origVert = circles[i].origVert[j];
-                    vert[j].x = origVert.x1;
-                    vert[j].y = origVert.y1;
-                    vert[j].z = origVert.z1;
-                }
-                if (SETTINGS.freqVertices) {
+                circles[i].resetVertices();
+                if (SETTINGS.freqVertices) circles[i].updateVertices(offset);
 
-                    for (var j = 0; j < circles[i].children[0].geometry.vertices.length; j++) {
-
-                        var vert = circles[i].children[0].geometry.vertices[j];
-                        if (Math.floor(Math.random() * 2) === 0) {
-                            vert.x += offset;
-                            vert.y += offset;
-                            vert.z += offset;
-                        } else {
-                            vert.x -= offset;
-                            vert.y -= offset;
-                            vert.z -= offset;
-                        }
-                    }
-                }
-                
                 circles[i].scale.x = 1 + i;
                 circles[i].scale.y = 1 + i;
                 circles[i].scale.z = 1 + i;
-                if (SETTINGS.createCone)circles[i].position.z += i;
+
+                if (SETTINGS.createCone) circles[i].position.z += i;
                 else circles[i].position.z = 0;
-                circles[i].children[0].material.opacity = 0;
 
-
-                circles[i].children[0].geometry.verticesNeedUpdate = true;
+                circles[i].updateOpacity(0);
             }
 
             circles[i].scale.x += 0.1 + amp / 10;
             circles[i].scale.y += 0.1 + amp / 10;
             circles[i].scale.z += 0.1 + amp / 10;
 
-            
-            var freqOp = map_range(t,0,5,0,1);
-            circles[i].children[0].material.opacity = map_range(Math.sin(Math.PI * .5 * ((time * i) / 10000)) + t,2,4,0,0.8);
 
-            
+            var freqOp = map_range(t, 2, 4, 0, 0.8);
+            circles[i].updateOpacity(map_range(Math.sin(Math.PI * .5 * ((time * i) / 10000)) + t, 2, 4, 0, 0.8));
+
+            //speeds up the movement of circles with frequency
             circles[i].scale.x += freqOp;
             circles[i].scale.y += freqOp;
             circles[i].scale.z += freqOp;

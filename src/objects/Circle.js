@@ -41,12 +41,44 @@ export default class Circle extends Object3D {
         }
 
         mesh = new Line(geometry, material);
+        mesh.material.transparent = true;
+        mesh.geometry.verticesNeedUpdate = true;
 
         //create json object of vertices for deep clone of array
         var jsonVert = JSON.stringify(vertArr);
         this.origVert = JSON.parse(jsonVert);
 
         this.add(mesh);
+    }
+
+    updateVertices(offset) {
+        for (var i = 0; i < this.children[0].geometry.vertices.length; i++) {
+            var vert = this.children[0].geometry.vertices[i];
+            if (Math.floor(Math.random() * 2) === 0) {
+                vert.x += offset;
+                vert.y += offset;
+                vert.z += offset;
+            } else {
+                vert.x -= offset;
+                vert.y -= offset;
+                vert.z -= offset;
+            }
+        }
+        this.children[0].geometry.verticesNeedUpdate = true;
+    }
+
+    resetVertices() {
+        for (var i = 0; i < this.children[0].geometry.vertices.length; i++) {
+            var vert = this.children[0].geometry.vertices;
+            vert[i].x = this.origVert[i].x1;
+            vert[i].y = this.origVert[i].y1;
+            vert[i].z = this.origVert[i].z1;
+        }
+        this.children[0].geometry.verticesNeedUpdate = true;
+    }
+
+    updateOpacity(opVal) {
+        this.children[0].material.opacity = opVal;
     }
 
 }
