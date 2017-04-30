@@ -40,7 +40,8 @@ function run(audioUtilities) {
         rotateAntiY: false,
         createCone: false,
         centre: false,
-        freqRotate: false,
+        freqRotateX: false,
+        freqRotateY: false,
         freqVertices: false,
         displayFPS: false
     };
@@ -100,7 +101,8 @@ function run(audioUtilities) {
     engine.start();
 
     /* some stuff with gui */
-    gui.add(SETTINGS, 'freqRotate');
+    gui.add(SETTINGS, 'freqRotateX');
+    gui.add(SETTINGS, 'freqRotateY');
     gui.add(SETTINGS, 'freqVertices');
     gui.add(SETTINGS, 'createCone');
     gui.add(SETTINGS, 'blurEffect');
@@ -201,17 +203,20 @@ function run(audioUtilities) {
 
 
             var freqOp = map_range(t, 2, 4, 0, 0.8);
-            circles[i].updateOpacity(map_range(Math.sin(Math.PI * .5 * ((time * i) / 10000)) + t, 2, 4, 0, 0.8));
+            circles[i].updateOpacity(freqOp);
 
             //speeds up the movement of circles with frequency
             circles[i].scale.x += freqOp;
             circles[i].scale.y += freqOp;
             circles[i].scale.z += freqOp;
-            if (SETTINGS.freqRotate) {
+            if (SETTINGS.freqRotateX) {
                 circles[i].rotation.x = Math.sin(Math.PI * .5 * ((time * i) / 10000)) + t;
-                circles[i].rotation.y = Math.cos(Math.PI * .5 * ((time * i) / 10000)) + t;
             } else {
                 circles[i].rotation.x = 0;
+            }
+            if (SETTINGS.freqRotateY) {
+                circles[i].rotation.y = Math.cos(Math.PI * .5 * ((time * i) / 10000)) + t;
+            } else {
                 circles[i].rotation.y = 0;
             }
 
@@ -251,10 +256,10 @@ function run(audioUtilities) {
         }
 
 
-        if (time % 1200 === 0) {
-            camera.position.set(origCameraPos.x, origCameraPos.y, origCameraPos.z);
-            camera.rotation.set(origCameraRot.x, origCameraRot.y, origCameraRot.z);
-        }
+        // if (time % 1200 === 0) {
+        //     camera.position.set(origCameraPos.x, origCameraPos.y, origCameraPos.z);
+        //     camera.rotation.set(origCameraRot.x, origCameraRot.y, origCameraRot.z);
+        // }
         //update time variable
         time++;
 
