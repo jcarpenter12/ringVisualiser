@@ -1,7 +1,12 @@
 import {
     WebGLRenderer,
     Scene,
-    PerspectiveCamera
+    PerspectiveCamera,
+    PointLight,
+    Math as tMath,
+    Mesh,
+    Line,
+    Color
 } from 'three';
 import loop from 'raf-loop';
 import WAGNER from '@superguigui/wagner';
@@ -16,7 +21,10 @@ import {
 } from './utils/debug';
 
 //audio analyser and averager 
+import audioPlayer from 'web-audio-player';
+import createAnalyser from 'web-audio-analyser';
 import average from 'analyser-frequency-average';
+import createAudioContext from 'ios-safe-audio-context';
 
 //utilities
 import createPlayer from './utils/audioplayer';
@@ -33,7 +41,7 @@ function run(audioUtilities) {
 
     /* Custom settings */
     const SETTINGS = {
-        blurEffect: false,
+        useComposer: false,
         rotateX: false,
         rotateY: false,
         rotateAntiX: false,
@@ -61,7 +69,7 @@ function run(audioUtilities) {
         blurAmount: 0,
         applyZoomBlur: false
     });
-    const boxBlurPass = new BoxBlurPass(2,2);
+    const boxBlurPass = new BoxBlurPass(3, 3);
     const fxaaPass = new FXAAPass();
 
     /* Main scene and camera */
@@ -91,6 +99,7 @@ function run(audioUtilities) {
         circles[i].children[0].geometry.verticesNeedUpdate = true;
     }
 
+    console.log(circles[0]);
     /* Various event listeners */
     resize.addListener(onResize);
 
@@ -102,16 +111,17 @@ function run(audioUtilities) {
     engine.start();
 
     /* some stuff with gui */
-    gui.add(SETTINGS, 'freqRotate');
-    gui.add(SETTINGS, 'freqVertices');
-    gui.add(SETTINGS, 'createCone');
-    gui.add(SETTINGS, 'blurEffect');
+    gui.add(SETTINGS, 'useComposer');
     gui.add(SETTINGS, 'rotateX');
     gui.add(SETTINGS, 'rotateY');
     gui.add(SETTINGS, 'rotateAntiX');
     gui.add(SETTINGS, 'rotateAntiY');
-    gui.add(SETTINGS, 'centre');    
+    gui.add(SETTINGS, 'createCone');
+    gui.add(SETTINGS, 'centre');
+    gui.add(SETTINGS, 'freqVertices');
+    gui.add(SETTINGS, 'freqRotate');
     gui.add(SETTINGS, 'displayFPS');
+    console.log(gui);
     /* -------------------------------------------------------------------------------- */
 
     /**
@@ -176,7 +186,7 @@ function run(audioUtilities) {
         //amplitude
         var amp = average(analyser, waveform, 225, 256);
 
-        //freq rotation variables 
+        //rotation variables 
         tprev = t * .75;
         t = .0025 + lowAvg + tprev;
         var offset = map_range(lowAvg, 0, 1, 0, 0.005);
@@ -213,7 +223,7 @@ function run(audioUtilities) {
                 circles[i].scale.z = 1 + i;
                 if (SETTINGS.createCone)circles[i].position.z += i;
                 else circles[i].position.z = 0;
-                circles[i].children[0].material.opacity = 0;
+                circles[i].children[0].material.opacity = 0.3;
 
 
                 circles[i].children[0].geometry.verticesNeedUpdate = true;
@@ -223,14 +233,14 @@ function run(audioUtilities) {
             circles[i].scale.y += 0.1 + amp / 10;
             circles[i].scale.z += 0.1 + amp / 10;
 
-            
-            var freqOp = map_range(t,0,5,0,1);
-            circles[i].children[0].material.opacity = map_range(Math.sin(Math.PI * .5 * ((time * i) / 10000)) + t,2,4,0,0.8);
+            circles[i].children[0].material.opacity -= 0.05;
+            if (subAvg > 0.7) {
+                circles[i].children[0].material.opacity = amp;
+                circles[i].scale.x += amp;
+                circles[i].scale.y += amp;
+                circles[i].scale.z += amp;
+            }
 
-            
-            circles[i].scale.x += freqOp;
-            circles[i].scale.y += freqOp;
-            circles[i].scale.z += freqOp;
             if (SETTINGS.freqRotate) {
                 circles[i].rotation.x = Math.sin(Math.PI * .5 * ((time * i) / 10000)) + t;
                 circles[i].rotation.y = Math.cos(Math.PI * .5 * ((time * i) / 10000)) + t;
@@ -241,7 +251,7 @@ function run(audioUtilities) {
 
         }
 
-        if (SETTINGS.blurEffect) {
+        if (SETTINGS.useComposer) {
             composer.reset();
             composer.render(scene, camera);
             composer.pass(bloomPass);
@@ -311,6 +321,7 @@ function handleDrop(e) {
     e.stopPropagation();
     //get the file
     var file = e.dataTransfer.files[0];
+    var fileName = file.name;
 
     var fileReader = new FileReader();
     var analyser = null;
