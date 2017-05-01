@@ -66,7 +66,7 @@ function run(audioUtilities) {
     });
     const boxBlurPass = new BoxBlurPass(2, 2);
     const fxaaPass = new FXAAPass();
-    const kaleidoscopePass = new KaleidoscopePass(4,45);
+    const kaleidoscopePass = new KaleidoscopePass(4, 45);
 
     /* Main scene and camera */
     const scene = new Scene();
@@ -229,18 +229,17 @@ function run(audioUtilities) {
         //effects
         if (SETTINGS.blurEffect || SETTINGS.kaleidoscope) {
             composer.reset();
-            composer.render(scene, camera);            
-        } 
-        else {
+            composer.render(scene, camera);
+        } else {
             renderer.render(scene, camera);
         }
-        if (SETTINGS.blurEffect){
+        if (SETTINGS.blurEffect) {
             composer.pass(bloomPass);
             composer.pass(fxaaPass);
             composer.pass(boxBlurPass);
             composer.toScreen();
         }
-        if(SETTINGS.kaleidoscope){
+        if (SETTINGS.kaleidoscope) {
             composer.pass(kaleidoscopePass);
             composer.toScreen();
         }
@@ -335,7 +334,7 @@ function handleDrop(e) {
 })();
 
 function handleClick(e) {
-    var source = ['src/assets/alberto.mp3'];
+    var source = ['src/assets/afx-cottage3e.mp3'];
     var analyser = makeAnalyser(createPlayer(source, '.default'));
     document.querySelector('.loading').style.display = 'none';
     document.querySelector('.parent').style.display = 'none';
