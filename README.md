@@ -3,7 +3,8 @@ ringVisualiser
 
 A basic music visualiser written using three.js. Allows the user to select different options using a gui.
 
-Demo here: "URL HERE"
+Demo here: "https://ringvisualiser.herokuapp.com/" 
+Default song: 'AFX - Cottage3e' 
 
 This was built using @superguigui excellent three.js starter kit 
 
