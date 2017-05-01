@@ -8,6 +8,7 @@ import WAGNER from '@superguigui/wagner';
 import MultiPassBloomPass from '@superguigui/wagner/src/passes/bloom/MultiPassBloomPass';
 import FXAAPass from '@superguigui/wagner/src/passes/fxaa/FXAAPass';
 import BoxBlurPass from '@superguigui/wagner/src/passes/box-blur/BoxBlurPass';
+import KaleidoscopePass from '@superguigui/wagner/src/passes/kaleidoscope/KaleidoscopePass';
 import resize from 'brindille-resize';
 import Circle from './objects/Circle';
 import OrbitControls from './controls/OrbitControls';
@@ -38,6 +39,7 @@ function run(audioUtilities) {
         rotateY: false,
         rotateAntiX: false,
         rotateAntiY: false,
+        kaleidoscope: false,
         createCone: false,
         centre: false,
         freqRotateX: false,
@@ -64,6 +66,7 @@ function run(audioUtilities) {
     });
     const boxBlurPass = new BoxBlurPass(2, 2);
     const fxaaPass = new FXAAPass();
+    const kaleidoscopePass = new KaleidoscopePass(4,45);
 
     /* Main scene and camera */
     const scene = new Scene();
@@ -106,6 +109,7 @@ function run(audioUtilities) {
     gui.add(SETTINGS, 'freqVertices');
     gui.add(SETTINGS, 'createCone');
     gui.add(SETTINGS, 'blurEffect');
+    gui.add(SETTINGS, 'kaleidoscope');
     gui.add(SETTINGS, 'rotateX');
     gui.add(SETTINGS, 'rotateY');
     gui.add(SETTINGS, 'rotateAntiX');
@@ -222,16 +226,28 @@ function run(audioUtilities) {
 
         }
 
-        if (SETTINGS.blurEffect) {
+        //effects
+        if (SETTINGS.blurEffect || SETTINGS.kaleidoscope) {
             composer.reset();
-            composer.render(scene, camera);
+            composer.render(scene, camera);            
+        } 
+        else {
+            renderer.render(scene, camera);
+        }
+        if (SETTINGS.blurEffect){
             composer.pass(bloomPass);
             composer.pass(fxaaPass);
             composer.pass(boxBlurPass);
             composer.toScreen();
-        } else {
-            renderer.render(scene, camera);
         }
+        if(SETTINGS.kaleidoscope){
+            composer.pass(kaleidoscopePass);
+            composer.toScreen();
+        }
+
+
+
+
         if (SETTINGS.rotateX) {
             camera.position.x = x * Math.cos(rotation) + z * Math.sin(rotation);
             camera.position.z = z * Math.cos(rotation) - x * Math.sin(rotation);
